@@ -17,7 +17,7 @@ const (
 	headerXClientId = "X-Client-Id"
 	headerXCallerId = "X-Caller-Id"
 
-	paramAccessToken = "access-Token"
+	paramAccessToken = "access_token"
 )
 
 var (
@@ -80,6 +80,9 @@ func AuthenticateRequest(request *http.Request) *errors.RestErr {
 
 	at, err := getAccessToken(accessTokenId)
 	if err != nil {
+		if err.Status == http.StatusNotFound {
+			return nil
+		}
 		return errors.NewBadRequestError(err.Error)
 	}
 
@@ -107,6 +110,9 @@ func getAccessToken(accessTokenId string) (*accessToken, *errors.RestErr) {
 		var restErr errors.RestErr
 		if err := json.Unmarshal(response.Bytes(), &restErr); err != nil {
 			return nil, errors.NewInternalServerError("invalid error interface when trying to get access token")
+		}
+		if response.StatusCode == http.StatusNotFound {
+
 		}
 		return nil, &restErr
 	}
